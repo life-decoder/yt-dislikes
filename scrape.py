@@ -186,7 +186,8 @@ def main():
 		if getattr(args, 'end_row', None) and row_idx > args.end_row:
 			break
 		video_entries.append((vid, cast(int, row_idx)))
-		if not args.process_all and len(video_entries) >= args.limit:
+		# If end_row is specified, process all rows in range; otherwise respect limit
+		if getattr(args, 'end_row', None) is None and not args.process_all and len(video_entries) >= args.limit:
 			break
 
 	# Build description of what we're processing
