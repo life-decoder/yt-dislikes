@@ -332,6 +332,5 @@ def main():
 
 	print(f"Done. Successfully processed {processed} video(s). Output: {out_path}")
 
-
 if __name__ == '__main__':
 	main()
