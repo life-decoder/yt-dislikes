@@ -1,0 +1,3 @@
+# Minimal dependencies for comments sentiment generation (matches test.py)
+nltk
+youtube-comment-downloader
