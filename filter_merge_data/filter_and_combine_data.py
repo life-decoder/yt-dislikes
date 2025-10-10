@@ -170,8 +170,8 @@ def process_video_record(row: pd.Series, comments_df: pd.DataFrame) -> dict:
 
 
 def filter_and_combine_data(
-    dislike_dataset_path: str = '..\\youtube_dislike_dataset.csv',
-    comments_sentiment_path: str = '..\\combined_comments_sentiment.csv',
+    dislike_dataset_path: str = os.path.join('..', 'youtube_dislike_dataset.csv'),
+    comments_sentiment_path: str = os.path.join('..', 'combined_comments_sentiment.csv'),
     output_path: str = 'filtered_combined_dataset.csv',
     batch_size: int = 1000,
     start_row: Optional[int] = None,
@@ -502,14 +502,14 @@ Examples:
     # Input/Output file arguments
     parser.add_argument(
         '--input',
-        default='..\\youtube_dislike_dataset.csv',
-        help='Path to YouTube dislike dataset CSV (default: ..\\youtube_dislike_dataset.csv)'
+        default=os.path.join('..', 'youtube_dislike_dataset.csv'),
+        help='Path to YouTube dislike dataset CSV (default: ../youtube_dislike_dataset.csv)'
     )
     
     parser.add_argument(
         '--comments',
-        default='..\\combined_comments_sentiment.csv',
-        help='Path to comments sentiment CSV (default: ..\\combined_comments_sentiment.csv)'
+        default=os.path.join('..', 'combined_comments_sentiment.csv'),
+        help='Path to comments sentiment CSV (default: ../combined_comments_sentiment.csv)'
     )
     
     parser.add_argument(
