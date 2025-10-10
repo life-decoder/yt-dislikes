@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from pathlib import Path
 
-def combine_comments(input_folder='to_combine', output_file='combined_comments_sentiment.csv'):
+def combine_comments(input_folder=r'../to_combine', output_file='combined_comments_sentiment.csv'):
     """
     Combine all CSV files in the input folder, excluding specified columns.
     Files are processed in alphabetical order by filename.
