@@ -452,8 +452,8 @@ Examples:
 	                    help='Number of threads for parallel processing (default: 1)')
 	parser.add_argument('--resume-row', type=int, default=None,
 	                    help='Resume from this row, appending to existing output file. If specified, --start-row is not required.')
-	parser.add_argument('--input', type=str, default='youtube_dislike_dataset.csv',
-	                    help='Input CSV file (default: youtube_dislike_dataset.csv)')
+	parser.add_argument('--input', type=str, default= r'../youtube_dislike_dataset.csv',
+	                    help='Input CSV file (default: ../youtube_dislike_dataset.csv)')
 	parser.add_argument('--output', type=str, default='combined_metadata.csv',
 	                    help='Output CSV file (default: combined_metadata.csv)')
 	
