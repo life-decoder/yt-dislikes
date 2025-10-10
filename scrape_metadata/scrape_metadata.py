@@ -467,10 +467,19 @@ Examples:
 	if not args.all and args.end_row is None:
 		parser.error("Either --end-row or --all must be specified")
 	
-	# Resolve paths
-	base_dir = os.path.dirname(__file__)
-	csv_path = os.path.join(base_dir, args.input)
-	output_path = os.path.join(base_dir, args.output)
+	# Get the directory where this script is located
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	
+	# Resolve paths relative to script directory
+	if not os.path.isabs(args.input):
+		csv_path = os.path.join(script_dir, args.input)
+	else:
+		csv_path = args.input
+	
+	if not os.path.isabs(args.output):
+		output_path = os.path.join(script_dir, args.output)
+	else:
+		output_path = args.output
 	
 	# Determine end_row if --all is specified
 	if args.all:

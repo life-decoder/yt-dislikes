@@ -167,7 +167,20 @@ def main():
 			print(f"--end-row ({args.end_row}) must be >= --start-row ({args.start_row})", file=sys.stderr)
 			sys.exit(2)
 
-	csv_path = os.path.join(os.path.dirname(__file__), args.csv)
+	# Get the directory where this script is located
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	
+	# Resolve paths relative to script directory
+	if not os.path.isabs(args.csv):
+		csv_path = os.path.join(script_dir, args.csv)
+	else:
+		csv_path = args.csv
+	
+	if not os.path.isabs(args.out if args.out else ''):
+		out_path_base = script_dir
+	else:
+		out_path_base = None
+	
 	if not os.path.exists(csv_path):
 		print(f"CSV not found at {csv_path}", file=sys.stderr)
 		sys.exit(1)
@@ -198,6 +211,26 @@ def main():
 			args.out = f'comments_sentiment_{start}-{end}.csv'
 		else:
 			args.out = 'comments_sentiment_empty.csv'
+	
+	# Resolve output path relative to script directory if relative
+	if not os.path.isabs(args.out):
+		out_path = os.path.join(script_dir, args.out)
+	else:
+		out_path = args.out
+	
+	# Create error log file path
+	from datetime import datetime
+	timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+	error_log_path = os.path.join(script_dir, f'comments_errors_{timestamp}.txt')
+	error_count = 0
+	
+	def log_error(message: str):
+		"""Write error message to log file."""
+		nonlocal error_count
+		error_count += 1
+		with open(error_log_path, 'a', encoding='utf-8') as f:
+			timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+			f.write(f"[{timestamp_str}] {message}\n")
 
 	# Build description of what we're processing
 	if getattr(args, 'end_row', None):
@@ -210,7 +243,6 @@ def main():
 
 	fieldnames = ['video_id', 'comment_index', 'cid', 'author', 'time', 'votes', 'text', 'pos', 'neu', 'neg', 'compound']
 	mode = 'a' if args.append else 'w'
-	out_path = os.path.join(os.path.dirname(__file__), args.out)
 	wrote_header = False
 	if args.append and os.path.exists(out_path):
 		wrote_header = True  # assume existing file already has a header
@@ -286,7 +318,9 @@ def main():
 						except Exception as e:
 							processed += 1
 							last_processed_row = row_idx
-							print(f"[{processed}] Unexpected error for {vid} (row {row_idx}): {e}", file=sys.stderr)
+							error_msg = f"Unexpected error for {vid} (row {row_idx}): {e}"
+							print(f"[{processed}] {error_msg}", file=sys.stderr)
+							log_error(error_msg)
 							continue
 						if err:
 							processed += 1
@@ -294,8 +328,10 @@ def main():
 							if err.startswith('fetch_error') and not fail_fast_triggered:
 								fail_fast_triggered = True
 								stop_event.set()
-								print(f"[{processed}] {v_id} (row {r_idx}): {err}", file=sys.stderr)
+								error_msg = f"{v_id} (row {r_idx}): {err}"
+								print(f"[{processed}] {error_msg}", file=sys.stderr)
 								print(f"Stopping due to fetch error. Re-run with --start-row {r_idx} to resume from this row.", file=sys.stderr)
+								log_error(error_msg)
 								# Attempt to cancel any pending futures
 								for f2, (v2, r2) in futures.items():
 									if f2 is not fut and not f2.done():
@@ -308,7 +344,9 @@ def main():
 									pass
 								break
 							else:
-								print(f"[{processed}] {v_id} (row {r_idx}): {err}", file=sys.stderr)
+								error_msg = f"{v_id} (row {r_idx}): {err}"
+								print(f"[{processed}] {error_msg}", file=sys.stderr)
+								log_error(error_msg)
 						else:
 							processed += 1
 							last_processed_row = r_idx
@@ -336,10 +374,19 @@ def main():
 			print(f"To resume, use: --start-row {last_processed_row + 1} --append", file=sys.stderr)
 		sys.exit(130)
 	except Exception as e:
-		print(f"Failed to write output CSV {out_path}: {e}", file=sys.stderr)
+		error_msg = f"Failed to write output CSV {out_path}: {e}"
+		print(error_msg, file=sys.stderr)
+		log_error(error_msg)
 		sys.exit(1)
 
 	print(f"Done. Successfully processed {processed} video(s). Output: {out_path}")
+	
+	if error_count > 0:
+		print(f"⚠ {error_count} errors encountered (see {error_log_path})")
+	else:
+		# Remove empty error log file if no errors
+		if os.path.exists(error_log_path):
+			os.remove(error_log_path)
 
 if __name__ == '__main__':
 	main()
