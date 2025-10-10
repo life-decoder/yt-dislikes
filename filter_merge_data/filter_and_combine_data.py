@@ -5,8 +5,29 @@ from typing import Optional
 import warnings
 from datetime import datetime
 import os
+from langdetect import detect, LangDetectException
 
 warnings.filterwarnings('ignore')
+
+
+def detect_language(text: str) -> Optional[str]:
+    """
+    Detect the language of the given text using langdetect.
+    
+    Args:
+        text: Text to analyze
+        
+    Returns:
+        Language code (e.g., 'en', 'es', 'fr') or None if detection fails
+    """
+    if not text or not isinstance(text, str) or text.strip() == '':
+        return None
+    try:
+        return detect(str(text))
+    except LangDetectException:
+        return None
+    except Exception:
+        return None
 
 
 def categorize_like_dislike_score(score: float) -> int:
@@ -83,12 +104,16 @@ def process_video_record(row: pd.Series, comments_df: pd.DataFrame) -> dict:
     likes = row['likes']
     dislikes = row['dislikes']
     comment_count = row['comment_count']
+    description = row.get('description', None)
     
     # Handle missing values - convert to 0
     view_count = 0 if pd.isna(view_count) else int(view_count)
     likes = 0 if pd.isna(likes) else int(likes)
     dislikes = 0 if pd.isna(dislikes) else int(dislikes)
     comment_count = 0 if pd.isna(comment_count) else int(comment_count)
+    
+    # Detect language of description
+    desc_lang = detect_language(description) if description and not pd.isna(description) else None
     
     # Compute average sentiment from comments
     sentiment = compute_average_sentiment(comments_df, video_id)
@@ -129,6 +154,7 @@ def process_video_record(row: pd.Series, comments_df: pd.DataFrame) -> dict:
         'likes': likes,
         'dislikes': dislikes,
         'comment_count': comment_count,
+        'desc_lang': desc_lang,
         'like_dislike_score': like_dislike_score,
         'ld_score_ohe': ld_score_ohe,
         'view_like_ratio': view_like_ratio,
@@ -145,7 +171,7 @@ def process_video_record(row: pd.Series, comments_df: pd.DataFrame) -> dict:
 
 def filter_and_combine_data(
     dislike_dataset_path: str = '..\\youtube_dislike_dataset.csv',
-    comments_sentiment_path: str = '..\\combined_comments_all.csv',
+    comments_sentiment_path: str = '..\\combined_comments_sentiment.csv',
     output_path: str = 'filtered_combined_dataset.csv',
     batch_size: int = 1000,
     start_row: Optional[int] = None,
@@ -166,9 +192,20 @@ def filter_and_combine_data(
         num_threads: Number of threads for parallel processing
         resume_mode: If True, append to existing output file instead of overwriting
     """
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Resolve paths relative to script directory if they are relative paths
+    if not os.path.isabs(dislike_dataset_path):
+        dislike_dataset_path = os.path.join(script_dir, dislike_dataset_path)
+    if not os.path.isabs(comments_sentiment_path):
+        comments_sentiment_path = os.path.join(script_dir, comments_sentiment_path)
+    if not os.path.isabs(output_path):
+        output_path = os.path.join(script_dir, output_path)
+    
     # Create error log file path
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    error_log_path = f'error_log_{timestamp}.txt'
+    error_log_path = os.path.join(script_dir, f'error_log_{timestamp}.txt')
     error_count = 0
     
     def log_error(message: str):
@@ -217,7 +254,7 @@ def filter_and_combine_data(
         dislike_df = pd.read_csv(
             dislike_dataset_path,
             usecols=['video_id', 'channel_id', 'published_at', 'view_count', 
-                    'likes', 'dislikes', 'comment_count']
+                    'likes', 'dislikes', 'comment_count', 'description']
         )
         total_available = len(dislike_df)
         print(f"  ✓ Loaded {total_available:,} video records")
@@ -471,8 +508,8 @@ Examples:
     
     parser.add_argument(
         '--comments',
-        default='..\\combined_comments_all.csv',
-        help='Path to comments sentiment CSV (default: ..\\combined_comments_all.csv)'
+        default='..\\combined_comments_sentiment.csv',
+        help='Path to comments sentiment CSV (default: ..\\combined_comments_sentiment.csv)'
     )
     
     parser.add_argument(
