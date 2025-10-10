@@ -140,8 +140,8 @@ def main():
 	parser.add_argument('--all', dest='process_all', action='store_true', help='Process all videos in the CSV')
 	parser.add_argument('--limit', type=int, default=1, help='Number of videos to process (ignored if --all)')
 	parser.add_argument('--max-comments', type=int, default=50, help='Max comments to fetch per video')
-	parser.add_argument('--csv', type=str, default='youtube_dislike_dataset.csv', help='Path to the videos CSV')
-	parser.add_argument('--out', type=str, default='comments_sentiment_all.csv', help='Output CSV for all processed videos')
+	parser.add_argument('--csv', type=str, default=r'..\youtube_dislike_dataset.csv', help='Path to the videos CSV')
+	parser.add_argument('--out', type=str, default=None, help='Output CSV for all processed videos (auto-generated if not specified)')
 	parser.add_argument('--append', action='store_true', help='Append to output file if it exists (default overwrites)')
 	parser.add_argument('--workers', type=int, default=1, help='Number of worker threads to use')
 	parser.add_argument('--delay', type=float, default=1.0, help='Delay in seconds between requests (default: 1.0)')
@@ -189,6 +189,15 @@ def main():
 		# If end_row is specified, process all rows in range; otherwise respect limit
 		if getattr(args, 'end_row', None) is None and not args.process_all and len(video_entries) >= args.limit:
 			break
+
+	# Auto-generate output filename if not specified
+	if args.out is None:
+		if video_entries:
+			start = video_entries[0][1]
+			end = video_entries[-1][1]
+			args.out = f'comments_sentiment_{start}-{end}.csv'
+		else:
+			args.out = 'comments_sentiment_empty.csv'
 
 	# Build description of what we're processing
 	if getattr(args, 'end_row', None):
