@@ -1,0 +1,16 @@
+# TIER3 TREE BASED
+# Total features: 12
+# Generated: October 10, 2025
+
+view_count
+likes
+comment_count
+avg_pos
+avg_neu
+avg_neg
+avg_compound
+comment_sample_size
+no_comments
+view_like_ratio
+age
+desc_lang

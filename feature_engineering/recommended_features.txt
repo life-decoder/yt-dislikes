@@ -1,0 +1,42 @@
+RECOMMENDED FEATURES FOR YOUTUBE DISLIKES PREDICTION
+================================================================================
+
+Target Variable: dislikes
+
+TIER 1 - Essential Features (Top 5):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+
+TIER 2 - Core Features (Top 10):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+6. avg_pos
+7. comment_sample_size
+8. avg_neg
+9. avg_compound
+10. avg_neu
+
+TIER 3 - Extended Features (Top 15):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+6. avg_pos
+7. comment_sample_size
+8. avg_neg
+9. avg_compound
+10. avg_neu
+11. no_comments
+12. age
+13. log_comment_count
+14. view_like_ratio

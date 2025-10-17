@@ -1,0 +1,14 @@
+# TIER2 LINEAR
+# Total features: 10
+# Generated: October 10, 2025
+
+log_view_count
+log_likes
+log_comment_count
+avg_compound
+avg_pos
+avg_neg
+comment_sample_size
+no_comments
+view_like_ratio
+age

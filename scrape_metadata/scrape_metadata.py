@@ -11,11 +11,9 @@ import pandas as pd
 
 # Third-party: aiotube for public YouTube metadata
 import aiotube
-# Language detection
-from langdetect import detect, LangDetectException
-
 
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
+
 write_lock = Lock()
 
 
@@ -120,20 +118,6 @@ def fetch_channel_metadata(channel_identifier: str) -> Optional[dict]:
 		return None
 
 
-def detect_language(text: str) -> Optional[str]:
-	"""Detect the language of the given text using langdetect.
-	Returns language code (e.g., 'en', 'es', 'fr') or None if detection fails.
-	"""
-	if not text or not isinstance(text, str) or text.strip() == '':
-		return None
-	try:
-		return detect(str(text))
-	except LangDetectException:
-		return None
-	except Exception:
-		return None
-
-
 def read_csv_row(csv_path: str) -> dict:
 	"""
 	Read the first row of the CSV as a dict for comparison.
@@ -183,21 +167,14 @@ def combine_metadata(video_id: str, aiotube_video: dict, aiotube_channel: Option
 	combined: dict = {
 		"video_id": video_id,
 	}
-	# CSV fields (without prefix, excluding description, tags, and comments)
-	for k, v in csv_row.items():
-		# Skip description, tags, and comments fields
-		if k.lower() in ['description', 'tags', 'comments']:
-			continue
-		combined[k] = v
-	# Only save duration and genre from aiotube (without prefix)
+	# Only save duration and genre from aiotube
 	if aiotube_video:
 		combined["duration"] = aiotube_video.get("duration", None)
+		# Store genre in its original string form
 		combined["genre"] = aiotube_video.get("genre", None)
-		# Detect language from aiotube description
-		description = aiotube_video.get("description")
-		combined["desc_lang"] = detect_language(description) if description else None
 	else:
-		combined["desc_lang"] = None
+		combined["duration"] = None
+		combined["genre"] = None
 	return combined
 
 
@@ -229,6 +206,25 @@ def process_single_video(row_idx: int, csv_row: dict, delay: float, error_log_pa
 		
 		# Fetch aiotube metadata (only duration and genre)
 		aiotube_meta = fetch_aiotube_metadata(video_id)
+		
+		# Check if metadata was successfully fetched
+		if not aiotube_meta:
+			error_msg = "Failed to fetch metadata from aiotube"
+			print(f"Row {row_idx}: {error_msg}")
+			log_error(error_log_path, row_idx, video_id, error_msg)
+			# Still return the video_id even if metadata fetch failed
+			return {
+				"video_id": video_id,
+				"duration": None,
+				"genre": None,
+				"row_index": row_idx
+			}
+		
+		# Check if duration or genre is missing and log it
+		if aiotube_meta.get("duration") is None:
+			log_error(error_log_path, row_idx, video_id, "Duration metadata is missing")
+		if aiotube_meta.get("genre") is None:
+			log_error(error_log_path, row_idx, video_id, "Genre metadata is missing")
 		
 		# Combine metadata (no channel metadata needed)
 		combined = combine_metadata(video_id, aiotube_meta, None, csv_row)
@@ -369,23 +365,30 @@ def process_batch(csv_path: str, start_row: int, end_row: int, output_path: str,
 				
 				# Process completed tasks
 				first_write = True
-				for future in as_completed(futures):
-					row_num = futures[future]
-					try:
-						result = future.result()
-						if result:
-							write_mode = mode if (first_write and mode == 'a') else ('w' if first_write else 'a')
-							save_to_csv(result, output_path, write_mode)
-							first_write = False
-							processed_count += 1
-							last_successful_row = max(last_successful_row, row_num)
-						else:
+				try:
+					for future in as_completed(futures):
+						row_num = futures[future]
+						try:
+							result = future.result()
+							if result:
+								write_mode = mode if (first_write and mode == 'a') else ('w' if first_write else 'a')
+								save_to_csv(result, output_path, write_mode)
+								first_write = False
+								processed_count += 1
+								last_successful_row = max(last_successful_row, row_num)
+							else:
+								error_count += 1
+						except Exception as e:
+							error_msg = f"Exception in thread - {str(e)}"
+							print(f"Row {row_num}: {error_msg}")
+							log_error(error_log_path, row_num, "", error_msg)
 							error_count += 1
-					except Exception as e:
-						error_msg = f"Exception in thread - {str(e)}"
-						print(f"Row {row_num}: {error_msg}")
-						log_error(error_log_path, row_num, "", error_msg)
-						error_count += 1
+				except KeyboardInterrupt:
+					# Cancel pending futures and shutdown gracefully
+					print("\n[INFO] Cancelling pending tasks...")
+					for future in futures:
+						future.cancel()
+					raise
 		
 		print(f"\n[SUCCESS] Completed! Processed: {processed_count}, Errors: {error_count}")
 		print(f"Results saved to: {output_path}")
@@ -395,8 +398,8 @@ def process_batch(csv_path: str, start_row: int, end_row: int, output_path: str,
 	except KeyboardInterrupt:
 		print_resume_instructions(last_successful_row, end_row, output_path, 
 		                         processed_count, error_count, error_log_path)
-		# Don't re-raise to allow clean exit
-		return
+		# Re-raise to ensure proper exit
+		raise
 	except Exception as e:
 		print(f"\n\n{'='*80}")
 		print(f"[ERROR] Fatal error occurred: {str(e)}")
@@ -452,10 +455,10 @@ Examples:
 	                    help='Number of threads for parallel processing (default: 1)')
 	parser.add_argument('--resume-row', type=int, default=None,
 	                    help='Resume from this row, appending to existing output file. If specified, --start-row is not required.')
-	parser.add_argument('--input', type=str, default= r'../youtube_dislike_dataset.csv',
-	                    help='Input CSV file (default: ../youtube_dislike_dataset.csv)')
-	parser.add_argument('--output', type=str, default='combined_metadata.csv',
-	                    help='Output CSV file (default: combined_metadata.csv)')
+	parser.add_argument('--input', type=str, default= r'../yt_dataset_en_v3.csv',
+	                    help='Input CSV file (default: ../yt_dataset_en_v3.csv)')
+	parser.add_argument('--output', type=str, default='additional_metadata.csv',
+	                    help='Output CSV file (default: additional_metadata.csv)')
 	
 	args = parser.parse_args()
 	
@@ -521,8 +524,11 @@ if __name__ == "__main__":
 	try:
 		main()
 	except KeyboardInterrupt:
-		print("\n\n[EXIT] Exiting gracefully... Goodbye!")
-		exit(0)
+		# User pressed Ctrl+C - exit cleanly
+		print("\n[EXIT] Exiting gracefully... Goodbye!")
+		import sys
+		sys.exit(0)
 	except Exception as e:
 		print(f"\n[ERROR] An unexpected error occurred: {e}")
-		exit(1)
+		import sys
+		sys.exit(1)

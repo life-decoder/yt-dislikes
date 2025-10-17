@@ -1,0 +1,286 @@
+================================================================================
+FEATURE SELECTION ANALYSIS FOR YOUTUBE DISLIKES PREDICTION
+================================================================================
+
+Loading dataset...
+Dataset loaded: 30867 rows, 28 columns
+
+================================================================================
+STEP 1: IDENTIFYING FEATURES WITH DATA LEAKAGE
+================================================================================
+
+Features with DATA LEAKAGE (derived from dislikes):
+--------------------------------------------------------------------------------
+ 1. dislikes
+ 2. log_dislikes
+ 3. like_dislike_score
+ 4. view_dislike_ratio
+ 5. dislike_like_ratio
+ 6. engagement_rate
+ 7. log_view_dislike_ratio
+ 8. log_dislike_like_ratio
+ 9. log_like_dislike_score
+10. log_engagement_rate
+
+WARNING: These features will be EXCLUDED from the predictive model training
+         to prevent data leakage and ensure valid predictions.
+
+Available features for prediction (no leakage):
+--------------------------------------------------------------------------------
+ 1. view_count
+ 2. likes
+ 3. comment_count
+ 4. desc_lang
+ 5. view_like_ratio
+ 6. no_comments
+ 7. avg_pos
+ 8. avg_neu
+ 9. avg_neg
+10. avg_compound
+11. comment_sample_size
+12. log_view_count
+13. log_likes
+14. log_comment_count
+15. age
+
+Total available features: 15
+
+================================================================================
+STEP 2: TARGET VARIABLE SELECTION
+================================================================================
+
+Target Variable Distribution Comparison:
+--------------------------------------------------------------------------------
+  Metric     dislikes  log_dislikes
+    Mean 4.911603e+03      2.958800
+  Median 8.300000e+02      2.919078
+ Std Dev 3.112587e+04      0.708427
+     Min 0.000000e+00      0.477121
+     Max 2.397733e+06      6.379801
+Skewness 3.392657e+01           NaN
+Kurtosis 1.865594e+03           NaN
+
+ Distribution Analysis:
+   - Skewness close to 0 indicates normal distribution (ideal for regression)
+   - Kurtosis close to 0 indicates normal tail behavior
+
+ RECOMMENDATION: Use 'dislikes' as target variable
+
+================================================================================
+STEP 3: CORRELATION ANALYSIS WITH TARGET VARIABLE
+================================================================================
+
+Top 15 Features by Absolute Correlation with log_dislikes:
+--------------------------------------------------------------------------------
+            Feature  Correlation  Abs_Correlation      P_Value Significant
+         view_count     0.689902         0.689902 0.000000e+00         Yes
+              likes     0.668701         0.668701 0.000000e+00         Yes
+      comment_count     0.415284         0.415284 0.000000e+00         Yes
+     log_view_count     0.308941         0.308941 0.000000e+00         Yes
+       avg_compound    -0.047705         0.047705 5.040895e-17         Yes
+            avg_pos    -0.029339         0.029339 2.530177e-07         Yes
+comment_sample_size     0.017282         0.017282 2.393843e-03         Yes
+        no_comments    -0.015479         0.015479 6.535952e-03         Yes
+            avg_neu     0.010569         0.010569 6.334191e-02          No
+            avg_neg    -0.009624         0.009624 9.085885e-02          No
+                age     0.007417         0.007417 1.925661e-01          No
+    view_like_ratio    -0.002124         0.002124 7.090554e-01          No
+          log_likes          NaN              NaN          NaN          No
+  log_comment_count          NaN              NaN          NaN          No
+
+Features with |correlation| > 0.3: 4
+
+================================================================================
+STEP 4: MULTICOLLINEARITY ANALYSIS (VIF)
+================================================================================
+
+Variance Inflation Factor (VIF) Analysis:
+--------------------------------------------------------------------------------
+VIF Interpretation:
+  - VIF < 5: Low multicollinearity (good)
+  - VIF 5-10: Moderate multicollinearity (acceptable)
+  - VIF > 10: High multicollinearity (problematic)
+
+            Feature        VIF
+     log_view_count 500.396546
+comment_sample_size 285.007169
+          log_likes 272.186156
+            avg_neu 262.158601
+  log_comment_count  70.733754
+        no_comments  31.762241
+            avg_pos  28.511353
+       avg_compound   9.072623
+            avg_neg   6.273175
+              likes   5.158911
+         view_count   4.492751
+                age   4.051511
+      comment_count   1.734412
+    view_like_ratio   1.025409
+
+Features with VIF < 10 (low to moderate multicollinearity): 7
+
+================================================================================
+STEP 5: PRINCIPAL COMPONENT ANALYSIS (PCA)
+================================================================================
+
+PCA Results:
+--------------------------------------------------------------------------------
+Total features: 14
+Components for 90% variance: 7
+Components for 95% variance: 8
+
+First 10 Principal Components:
+Component  Explained_Variance  Cumulative_Variance
+      PC1            0.279673             0.279673
+      PC2            0.239057             0.518730
+      PC3            0.105778             0.624509
+      PC4            0.097277             0.721786
+      PC5            0.072235             0.794020
+      PC6            0.071274             0.865294
+      PC7            0.053659             0.918952
+      PC8            0.034226             0.953178
+      PC9            0.018243             0.971421
+     PC10            0.011590             0.983011
+
+Top 10 Features by Loading on PC1 (most important component):
+--------------------------------------------------------------------------------
+comment_sample_size    0.372811
+no_comments            0.366468
+avg_neu                0.350573
+avg_pos                0.326265
+log_likes              0.324569
+log_comment_count      0.309916
+log_view_count         0.284076
+likes                  0.257445
+view_count             0.232518
+avg_compound           0.208157
+
+================================================================================
+STEP 6: RANDOM FOREST FEATURE IMPORTANCE
+================================================================================
+
+Training Random Forest model for feature importance...
+Features: 14
+Samples: 30867
+
+Top 15 Features by Random Forest Importance:
+--------------------------------------------------------------------------------
+            Feature  Importance
+         view_count    0.217085
+     log_view_count    0.191296
+          log_likes    0.124470
+            avg_neg    0.087044
+              likes    0.086381
+                age    0.070119
+      comment_count    0.068092
+  log_comment_count    0.056599
+       avg_compound    0.038705
+    view_like_ratio    0.032481
+            avg_pos    0.015511
+            avg_neu    0.011084
+comment_sample_size    0.000688
+        no_comments    0.000445
+
+================================================================================
+STEP 7: FINAL FEATURE SELECTION
+================================================================================
+
+Top 20 Features - Combined Ranking:
+--------------------------------------------------------------------------------
+            Feature  Combined_Score  Correlation_Rank  RF_Importance_Rank
+         view_count            32.4                 1                   1
+     log_view_count            29.8                11                  11
+              likes            27.4                 2                   2
+      comment_count            21.6                 3                   3
+          log_likes            21.2                12                  12
+            avg_pos            19.4                 6                   6
+comment_sample_size            18.4                10                  10
+            avg_neg            18.2                 8                   8
+       avg_compound            18.0                 9                   9
+            avg_neu            16.0                 7                   7
+        no_comments            15.4                 5                   5
+                age            14.8                14                  14
+  log_comment_count            13.4                13                  13
+    view_like_ratio             9.0                 4                   4
+
+ SELECTED FEATURES: 14 features
+
+================================================================================
+STEP 8: RECOMMENDED FEATURE SETS
+================================================================================
+
+TIER 1 - Essential Features (Top 5):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+
+TIER 2 - Core Features (Top 10):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+6. avg_pos
+7. comment_sample_size
+8. avg_neg
+9. avg_compound
+10. avg_neu
+
+TIER 3 - Extended Features (Top 15):
+--------------------------------------------------------------------------------
+1. view_count
+2. log_view_count
+3. likes
+4. comment_count
+5. log_likes
+6. avg_pos
+7. comment_sample_size
+8. avg_neg
+9. avg_compound
+10. avg_neu
+11. no_comments
+12. age
+13. log_comment_count
+14. view_like_ratio
+
+================================================================================
+STEP 9: SAVING RESULTS
+================================================================================
+
+ Feature ranking saved to: feature_engineering/feature_ranking.csv
+ Recommended features saved to: feature_engineering/recommended_features.txt
+
+================================================================================
+STEP 10: GENERATING VISUALIZATIONS
+================================================================================
+
+ Visualizations saved to: feature_engineering/feature_selection_analysis.png
+
+ Correlation heatmap saved to: feature_engineering/correlation_heatmap.png
+
+================================================================================
+FEATURE SELECTION ANALYSIS COMPLETE
+================================================================================
+
+Summary:
+  - Target Variable: dislikes
+  - Total Available Features: 15
+  - Recommended Tier 1 Features: 5
+  - Recommended Tier 2 Features: 10
+  - Recommended Tier 3 Features: 14
+
+Output Files:
+  1. feature_ranking.csv - Complete feature ranking
+  2. recommended_features.txt - Recommended feature sets
+  3. feature_selection_analysis.png - Visualization dashboard
+  4. correlation_heatmap.png - Feature correlation matrix
+
+Next Steps:
+  - Use recommended features to train regression models
+  - Compare model performance across different feature tiers
+  - Generate detailed report with findings
+

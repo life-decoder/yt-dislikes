@@ -1,0 +1,16 @@
+# TIER3 LINEAR
+# Total features: 12
+# Generated: October 10, 2025
+
+log_view_count
+log_likes
+log_comment_count
+avg_pos
+avg_neu
+avg_neg
+avg_compound
+comment_sample_size
+no_comments
+view_like_ratio
+age
+desc_lang

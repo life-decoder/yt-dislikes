@@ -1,0 +1,7 @@
+# TIER1 ESSENTIAL
+# Total features: 3
+# Generated: October 10, 2025
+
+view_count
+likes
+comment_count

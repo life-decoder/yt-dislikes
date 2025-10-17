@@ -6,3 +6,10 @@ pandas
 # Dependencies for metadata scraping
 aiotube
 langdetect
+
+# Machine learning / modeling
+scikit-learn
+xgboost
+joblib
+matplotlib
+seaborn
