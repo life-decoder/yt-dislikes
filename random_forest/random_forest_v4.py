@@ -15,8 +15,8 @@ warnings.filterwarnings('ignore')
 if __name__ == "__main__":
     # 1. Load the Dataset
     try:
-        df = pd.read_csv('yt_dataset_en_v4.csv')
-        print(f"Dataset 'yt_dataset_en_v4.csv' loaded successfully. Original shape: {df.shape}")
+        df = pd.read_csv('../yt_dataset_v4.csv')
+        print(f"Dataset 'yt_dataset_v4.csv' loaded successfully. Original shape: {df.shape}")
         # IMPORTANT: Assuming the CSV is already sorted by date as stated.
     except FileNotFoundError:
         print("Error: The file 'yt_dataset_en_v4.csv' was not found.")
