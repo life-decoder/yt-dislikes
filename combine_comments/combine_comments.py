@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-def combine_comments(input_folder=r'../comments_datasets', output_file='combined_comments_sentiment.csv'):
+def combine_comments(input_folder=r'../comments_datasets/filtered', output_file='combined_comments_sentiment.csv'):
     """
     Combine all CSV files in the input folder, excluding specified columns.
     Files are processed in alphabetical order by filename.
