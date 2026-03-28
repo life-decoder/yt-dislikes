@@ -1,0 +1,17 @@
+age
+avg_compound
+avg_neg
+avg_neu
+avg_pos
+comment_count
+comment_sample_size
+likes
+log_comment_count
+log_likes
+log_view_count
+no_comments
+view_count
+view_like_ratio
+log_view_like_ratio
+duration
+genre_id

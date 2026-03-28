@@ -1,0 +1,11 @@
+# Requirements for roberta/sentiment_comments_roberta.py
+# Install with: pip install -r roberta/requirements.txt
+# Note: For best performance with GPU, install a matching torch build per https://pytorch.org/
+
+transformers>=4.30.0
+torch>=1.13.1
+pandas>=1.5.0
+scipy>=1.8.0
+tqdm>=4.64.0
+sentencepiece>=0.1.97
+tokenizers>=0.13.2

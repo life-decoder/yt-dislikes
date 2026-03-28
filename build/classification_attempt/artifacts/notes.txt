@@ -1,0 +1,2 @@
+Best params: {'xgb__learning_rate': 0.1, 'xgb__max_depth': 6, 'xgb__n_estimators': 300}
+Train size: 24692, Test size: 6174
