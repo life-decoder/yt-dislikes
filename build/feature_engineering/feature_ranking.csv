@@ -1,0 +1,15 @@
+Feature,Combined_Score,Correlation_Rank,RF_Importance_Rank
+view_count,32.4,1,1
+log_view_count,29.8,11,11
+likes,27.4,2,2
+comment_count,21.6,3,3
+log_likes,21.2,12,12
+avg_pos,19.400000000000002,6,6
+comment_sample_size,18.4,10,10
+avg_neg,18.2,8,8
+avg_compound,18.0,9,9
+avg_neu,16.0,7,7
+no_comments,15.399999999999999,5,5
+age,14.799999999999999,14,14
+log_comment_count,13.4,13,13
+view_like_ratio,9.0,4,4

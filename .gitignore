@@ -2,5 +2,5 @@
 __pycache__/
 video_IDs/
 .vscode/
-*.csv
+#*.csv
 backup/
